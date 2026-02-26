@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doc Mkononi Dashboard</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* BODY */
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: #f4f9ff
+          url("https://cdn-icons-png.flaticon.com/512/2966/2966327.png")
+          no-repeat center;
+        background-size: 300px;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+
+      /* SIDEBAR */
+      .sidebar {
+        height: 100vh;
+        position: fixed;
+        width: 260px;
+        background: linear-gradient(180deg, #2196f3, #f44336);
+        color: white;
+        padding-top: 20px;
+      }
+
+      .sidebar h4 {
+        font-weight: 600;
+      }
+
+      .sidebar a {
+        color: white;
+        text-decoration: none;
+        padding: 12px 20px;
+        display: block;
+        border-radius: 10px;
+        margin: 5px 10px;
+        transition: 0.3s;
+      }
+
+      .sidebar a:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .sidebar a.active {
+        background: white;
+        color: #1976d2;
+        font-weight: 600;
+      }
+
+      /* MAIN CONTENT */
+      .main-content {
+        margin-left: 260px;
+        padding: 30px;
+      }
+
+      /* TOP BAR */
+      .topbar {
+        background: white;
+        padding: 15px 25px;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+      }
+
+      /* Cards */
+      .card {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+      }
+
+      /* Risk colors */
+      .risk-low {
+        color: green;
+        font-weight: bold;
+      }
+      .risk-medium {
+        color: orange;
+        font-weight: bold;
+      }
+      .risk-high {
+        color: red;
+        font-weight: bold;
+      }
+
+      .doctor-box {
+        padding: 20px;
+        border-radius: 15px;
+        transition: 0.3s ease;
+        background: #f8fbff;
+        height: 100%;
+      }
+
+      .doctor-box:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+        background: white;
+      }
+
+      .progress-custom {
+        height: 20px;
+      }
+
+      .progress-bar-initial {
+        width: 0%;
+      }
+
+      /* Mobile */
+      @media (max-width: 992px) {
+        .sidebar {
+          position: relative;
+          width: 100%;
+          height: auto;
+        }
+        .main-content {
+          margin-left: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="text-center mb-4">
+        <img
+          src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png"
+          width="60"
+          alt="Doc Mkononi logo"
+        />
+        <h4 class="mt-2">Doc Mkononi</h4>
+      </div>
+
+      <a href="#" class="active"
+        ><i class="bi bi-speedometer2"></i> Dashboard</a
+      >
+      <a href="#"><i class="bi bi-heart-pulse"></i> Health Metrics</a>
+      <a href="#"><i class="bi bi-bar-chart"></i> Wellness Trends</a>
+      <a href="#"><i class="bi bi-people"></i> Consultations</a>
+      <a href="#"><i class="bi bi-gear"></i> The 8 Doctors </a>
+      <a href="#"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+      <!-- TOP BAR -->
+      <div class="topbar d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Welcome Back 👋</h5>
+        <div>
+          <i class="bi bi-bell fs-5 me-3"></i>
+          <i class="bi bi-person-circle fs-4"></i>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <!-- Health Form -->
+        <div class="col-lg-6">
+          <div class="card p-4">
+            <h5>Log Wellness Device Metrics</h5>
+
+            <form id="healthForm">
+              <input
+                type="number"
+                class="form-control mb-3"
+                id="bp"
+                placeholder="Blood Pressure (Systolic)"
+                required
+              />
+              <input
+                type="number"
+                class="form-control mb-3"
+                id="heartRate"
+                placeholder="Heart Rate (bpm)"
+                required
+              />
+              <input
+                type="number"
+                class="form-control mb-3"
+                id="sleep"
+                placeholder="Sleep (hours)"
+                required
+              />
+              <input
+                type="number"
+                class="form-control mb-3"
+                id="bs"
+                placeholder="Blood Sugar (mg/dl)"
+                required
+              />
+              <input
+                type="number"
+                class="form-control mb-3"
+                id="exercise"
+                placeholder="Exercise (minutes)"
+                required
+              />
+              <button type="submit" class="btn btn-primary w-100">
+                Analyze Health
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Health Progress -->
+        <div class="col-lg-6">
+          <div class="card p-4">
+            <h5>Your Health Score</h5>
+
+            <h2 id="healthScore" class="mb-3 text-primary">0%</h2>
+
+            <div class="progress mb-3 progress-custom">
+              <div
+                id="healthProgressBar"
+                class="progress-bar bg-success progress-bar-initial"
+              ></div>
+            </div>
+
+            <div id="healthAdvice" class="mb-3 text-muted">
+              Log your metrics to calculate your health score.
+            </div>
+
+            <button id="consultBtn" class="btn btn-outline-danger w-100 mb-3">
+              <i class="bi bi-person-plus-fill me-2"></i>
+              Connect with Medical Advisor
+            </button>
+          </div>
+        </div>
+        <!-- NEWSTART GRID SECTION -->
+        <div class="mt-5">
+          <h4 class="mb-4 text-center">
+            Remember!! The 8 Doctors of Health (NEWSTART)
+          </h4>
+
+          <div class="card p-4">
+            <div class="row text-center g-4">
+              <!-- Nutrition -->
+              <div class="col-md-3">
+                <div class="doctor-box">
+                  <i class="bi bi-apple fs-1 text-primary"></i>
+                  <h6 class="mt-2">Nutrition</h6>
+                  <p class="small text-muted">
+                    Eat balanced meals rich in fruits, vegetables, whole grains,
+                    and natural foods to nourish and strengthen your body.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Exercise -->
+              <div class="col-md-3">
+                <div class="doctor-box">
+                  <i class="bi bi-activity fs-1 text-danger"></i>
+                  <h6 class="mt-2">Exercise</h6>
+                  <p class="small text-muted">
+                    Aim for moderate intensity physical activity (like brisk
+                    walking or gardening) for at least 150 minutes a week, with
+                    muscle-strengthening activities 2 days a week.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Water -->
+              <div class="col-md-3">
+                <div class="doctor-box">
+                  <i class="bi bi-droplet fs-1 text-info"></i>
+                  <h6 class="mt-2">Water</h6>
+                  <p class="small text-muted">
+                    Drink enough clean water daily to stay hydrated, boost
+                    metabolism, and support vital body functions.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Sunlight -->
+              <div class="col-md-3">
+                <div class="doctor-box">
+                  <i class="bi bi-sun fs-1 text-warning"></i>
+                  <h6 class="mt-2">Sunlight</h6>
+                  <p class="small text-muted">
+                    Get safe exposure to sunlight to promote vitamin D
+                    production and improve mood and immune function.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Temperance -->
+              <div class="col-md-3">
+                <div class="doctor-box">
+                  <i class="bi bi-shield-check fs-1 text-secondary"></i>
+                  <h6 class="mt-2">Temperance</h6>
+                  <p class="small text-muted">
+                    Practice moderation and avoid harmful substances to maintain
+                    balance and protect your long-term health.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Air -->
+              <div class="col-md-3">
+                <div class="doctor-box">
+                  <i class="bi bi-wind fs-1 text-primary"></i>
+                  <h6 class="mt-2">Air</h6>
+                  <p class="small text-muted">
+                    Breathe fresh air and practice deep breathing to improve
+                    oxygen flow and mental clarity.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Rest -->
+              <div class="col-md-3">
+                <div class="doctor-box">
+                  <i class="bi bi-moon-stars fs-1 text-dark"></i>
+                  <h6 class="mt-2">Rest</h6>
+                  <p class="small text-muted">
+                    Ensure adequate sleep and relaxation to restore energy,
+                    repair cells, and maintain emotional balance.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Trust in God -->
+              <div class="col-md-3">
+                <div class="doctor-box">
+                  <i class="bi bi-heart fs-1 text-danger"></i>
+                  <h6 class="mt-2">Trust in God</h6>
+                  <p class="small text-muted">
+                    Cultivate spiritual faith and inner peace to strengthen
+                    resilience and promote holistic well-being.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <script>
+          // Advanced Health Score Analyzer
+          document
+            .getElementById("healthForm")
+            .addEventListener("submit", function (e) {
+              e.preventDefault();
+
+              // Get values properly
+              let bp = +document.getElementById("bp").value;
+              let heartRate = +document.getElementById("heartRate").value;
+              let sleep = +document.getElementById("sleep").value;
+              let bs = +document.getElementById("bs").value;
+              let exercise = +document.getElementById("exercise").value;
+
+              let score = 100;
+              let advice = [];
+
+              // Deduct points intelligently
+              if (bp > 140) {
+                score -= 20;
+                advice.push(
+                  "⚠️ Reduce salt intake and monitor blood pressure.",
+                );
+              }
+
+              if (heartRate > 100) {
+                score -= 15;
+                advice.push(
+                  "⚠️ Elevated heart rate detected. Consider medical review.",
+                );
+              }
+
+              if (sleep < 6) {
+                score -= 15;
+                advice.push("😴 Improve sleep duration (7–8 hrs recommended).");
+              }
+
+              if (stress > 7) {
+                score -= 15;
+                advice.push(
+                  "🧘 Practice stress management (meditation, breathing exercises).",
+                );
+              }
+
+              if (exercise < 30) {
+                score -= 15;
+                advice.push(
+                  "🏃 Increase physical activity to at least 30 mins daily.",
+                );
+              }
+
+              if (score < 0) score = 0;
+
+              // Update Percentage Text
+              document.getElementById("healthScore").innerText = score + "%";
+
+              // Update Progress Bar
+              let progressBar = document.getElementById("healthProgressBar");
+              progressBar.style.width = score + "%";
+
+              // Change color dynamically
+              progressBar.classList.remove(
+                "bg-success",
+                "bg-warning",
+                "bg-danger",
+              );
+
+              if (score >= 75) {
+                progressBar.classList.add("bg-success");
+              } else if (score >= 50) {
+                progressBar.classList.add("bg-warning");
+              } else {
+                progressBar.classList.add("bg-danger");
+              }
+
+              // Display Advice
+              if (advice.length === 0) {
+                document.getElementById("healthAdvice").innerHTML =
+                  "✅ Excellent health status. Maintain your healthy habits!";
+              } else {
+                document.getElementById("healthAdvice").innerHTML =
+                  advice.join("<br>");
+              }
+            });
+        </script>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DocMkononi | Smart Health Monitoring</title>
+    <link rel="stylesheet" href="" />
+
+    <!-- Bootstrap -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      rel="stylesheet"
+    />
+    <!-- AOS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #f8f9fa;
+        position: relative;
+        scroll-behavior: smooth; /* smooth scrolling */
+      }
+
+      /* Navbar */
+      .navbar {
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      .navbar-brand span {
+        color: red;
+      }
+      .nav-link {
+        color: #0d6efd !important;
+        font-weight: 500;
+      }
+
+      /* Fullscreen Section */
+      section {
+        position: relative;
+        min-height: 100vh; /* full viewport height */
+        display: flex;
+        align-items: center; /* vertical center */
+        justify-content: center; /* horizontal center */
+        padding: 4rem 2rem;
+        scroll-snap-align: start; /* for snapping effect */
+      }
+
+      /* Hero Section */
+      .hero {
+        background: linear-gradient(to right, #0d6efd, #5dade2);
+        color: white;
+        overflow: hidden;
+      }
+
+      /* Hero icon as background in all sections */
+      section::before {
+        content: "";
+        background: url("https://cdn-icons-png.flaticon.com/512/2966/2966327.png")
+          no-repeat center;
+        background-size: 200px;
+        opacity: 0.05;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+      }
+
+      section > .container {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Hero Icon */
+      .hero-icon {
+        max-width: 350px;
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-15px);
+        }
+      }
+      .about-paragraph {
+        max-width: 800px; /* limits width for readability */
+        line-height: 1.7; /* gives nice spacing between lines */
+        text-align: center; /* centers text */
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      /* Cards */
+      .card-hover {
+        border: none;
+        border-radius: 16px;
+        transition: 0.3s;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      }
+      .card-hover:hover {
+        transform: translateY(-8px);
+      }
+
+      /* Buttons */
+      .btn-custom {
+        background-color: #fff;
+        color: #0d6efd;
+        font-weight: 600;
+        border-radius: 50px;
+        padding: 10px 30px;
+        transition: 0.3s;
+      }
+      .btn-custom:hover {
+        background-color: #dbeafe;
+      }
+
+      /* Footer */
+      footer {
+        background: #000;
+        color: white;
+      }
+
+      /* Scroll snapping */
+      html {
+        scroll-snap-type: y mandatory;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+      <div class="container">
+        <a class="navbar-brand fw-bold" href="#">Doc<span>Mkononi</span></a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#nav"
+          title="Toggle navigation menu"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="nav">
+          <ul class="navbar-nav ms-auto gap-3">
+            <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+            <li class="nav-item">
+              <a class="nav-link" href="#about">About</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#services">Services</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#devices">Wellness Devices</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#nutrition">Nutrition Tips</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#contact">Contact Us</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero" id="home">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-6" data-aos="fade-right">
+            <h1 class="fw-bold mb-3">
+              <span id="hero-text"></span> with
+              <span class="text-danger">DocMkononi</span>
+            </h1>
+
+            <p class="mb-4">
+              Empowering users with continuous health monitoring, early symptom
+              recognition, and actionable insights — take action before illness
+              becomes severe.
+            </p>
+            <a href="register.html" class="btn btn-custom btn-lg"
+              >Get Started</a
+            >
+          </div>
+          <div class="col-md-6 text-center" data-aos="fade-left">
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png"
+              class="img-fluid hero-icon"
+              alt="Health Icon"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section
+      class="py-5"
+      id="about"
+      style="
+        background: #e6f0ff;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+      "
+    >
+      <div class="container" data-aos="fade-up">
+        <div class="row align-items-center">
+          <!-- Text Content -->
+          <div class="col-md-6 mb-4 mb-md-0">
+            <h2 class="fw-bold mb-4 text-primary">
+              About <span class="text-danger">DocMkononi</span>
+            </h2>
+            <p class="text-muted fs-5 mb-4 text-center mx-auto about-paragraph">
+              In today’s fast-paced world, health often takes a back seat until
+              problems become serious.
+              <strong>DocMkononi</strong> empowers you to take control of your
+              health proactively, providing continuous monitoring, actionable
+              insights, and support for better lifestyle choices.
+            </p>
+            <div class="row g-3">
+              <div class="col-12" data-aos="fade-up" data-aos-delay="100">
+                <div
+                  class="p-3 shadow-sm rounded d-flex align-items-center bg-white"
+                >
+                  <i class="fas fa-check-circle text-primary fs-3 me-3"></i>
+                  <div>
+                    <h6 class="mb-1">Missed Early Warnings</h6>
+                    <p class="small text-muted mb-0">
+                      Detect illnesses before they become severe.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12" data-aos="fade-up" data-aos-delay="200">
+                <div
+                  class="p-3 shadow-sm rounded d-flex align-items-center bg-white"
+                >
+                  <i class="fas fa-check-circle text-primary fs-3 me-3"></i>
+                  <div>
+                    <h6 class="mb-1">Inconsistent Health Tracking</h6>
+                    <p class="small text-muted mb-0">
+                      Track your vital signs regularly and effortlessly.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12" data-aos="fade-up" data-aos-delay="300">
+                <div
+                  class="p-3 shadow-sm rounded d-flex align-items-center bg-white"
+                >
+                  <i class="fas fa-check-circle text-primary fs-3 me-3"></i>
+                  <div>
+                    <h6 class="mb-1">Chronic Disease Challenges</h6>
+                    <p class="small text-muted mb-0">
+                      Manage long-term conditions efficiently.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12" data-aos="fade-up" data-aos-delay="400">
+                <div
+                  class="p-3 shadow-sm rounded d-flex align-items-center bg-white"
+                >
+                  <i class="fas fa-check-circle text-primary fs-3 me-3"></i>
+                  <div>
+                    <h6 class="mb-1">Poor Awareness</h6>
+                    <p class="small text-muted mb-0">
+                      Understand your health data fully and clearly.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12" data-aos="fade-up" data-aos-delay="500">
+                <div
+                  class="p-3 shadow-sm rounded d-flex align-items-center bg-white"
+                >
+                  <i class="fas fa-check-circle text-primary fs-3 me-3"></i>
+                  <div>
+                    <h6 class="mb-1">Lifestyle Mismanagement</h6>
+                    <p class="small text-muted mb-0">
+                      Adopt healthier habits to prevent illnesses.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p class="mt-4 text-muted fs-5 text-center mx-auto about-paragraph">
+              DocMkononi bridges the gap between awareness and action, giving
+              you the tools to monitor your health, detect early warning signs,
+              and make informed decisions before small issues become serious
+              problems.
+            </p>
+          </div>
+
+          <!-- Image / Hero Icon -->
+          <div class="col-md-6 text-center" data-aos="fade-left">
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png"
+              class="img-fluid hero-icon"
+              alt="Health Icon"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section class="bg-light" id="services">
+      <div class="container text-center" data-aos="fade-up">
+        <h2 class="fw-bold mb-4">How We Solve Health Challenges</h2>
+        <div class="row g-4 justify-content-center">
+          <div class="col-md-4">
+            <div class="card card-hover p-4">
+              <i class="fas fa-heartbeat fs-1 text-danger mb-3"></i>
+              <h5>Continuous Monitoring</h5>
+              <p>Track vital signs regularly to detect changes early.</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card card-hover p-4">
+              <i class="fas fa-eye fs-1 text-primary mb-3"></i>
+              <h5>Early Symptom Recognition</h5>
+              <p>Identify abnormal patterns before symptoms become severe.</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card card-hover p-4">
+              <i class="fas fa-pills fs-1 text-success mb-3"></i>
+              <h5>Chronic Disease Management</h5>
+              <p>Medication tracking and long-term health trend analysis.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WELLNESS DEVICES -->
+    <section class="py-5 bg-light" id="devices">
+      <div class="container">
+        <div class="text-center mb-5">
+          <h2 class="fw-bold">Wellness Devices</h2>
+          <p class="text-muted">
+            Devices used for monitoring your health in real-time
+          </p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+          <!-- Smartwatch -->
+          <div class="col-md-4 d-flex justify-content-center">
+            <div
+              class="card text-center"
+              style="
+                max-width: 280px;
+                border-radius: 16px;
+                border-top: 5px solid #0d6efd;
+                padding: 20px;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+                transition:
+                  transform 0.3s,
+                  box-shadow 0.3s;
+              "
+            >
+              <img
+                src="pics/smartwatch.jpg"
+                class="img-fluid mb-3"
+                style="max-height: 120px; object-fit: contain"
+                alt="Smartwatch"
+              />
+              <h6 class="fw-semibold mb-2">Smartwatch / Fitness Band</h6>
+              <p class="small text-muted">
+                Tracks heart rate, steps, sleep, and SpO₂
+              </p>
+            </div>
+          </div>
+
+          <!-- Pulse Oximeter -->
+          <div class="col-md-4 d-flex justify-content-center">
+            <div
+              class="card text-center"
+              style="
+                max-width: 280px;
+                border-radius: 16px;
+                border-top: 5px solid #198754;
+                padding: 20px;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+                transition:
+                  transform 0.3s,
+                  box-shadow 0.3s;
+              "
+            >
+              <img
+                src="pics/pulse oximeter.jpg"
+                class="img-fluid mb-3"
+                style="max-height: 120px; object-fit: contain"
+                alt="Pulse Oximeter"
+              />
+              <h6 class="fw-semibold mb-2">Pulse Oximeter</h6>
+              <p class="small text-muted">Monitors oxygen levels & pulse</p>
+            </div>
+          </div>
+
+          <!-- Digital BP Monitor -->
+          <div class="col-md-4 d-flex justify-content-center">
+            <div
+              class="card text-center"
+              style="
+                max-width: 280px;
+                border-radius: 16px;
+                border-top: 5px solid #dc3545;
+                padding: 20px;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+                transition:
+                  transform 0.3s,
+                  box-shadow 0.3s;
+              "
+            >
+              <img
+                src="pics/blood pressure monitor.jpg"
+                class="img-fluid mb-3"
+                style="max-height: 120px; object-fit: contain"
+                alt="Blood Pressure Monitor"
+              />
+              <h6 class="fw-semibold mb-2">Blood Pressure Monitor</h6>
+              <p class="small text-muted">
+                Tracks systolic and diastolic pressure
+              </p>
+            </div>
+          </div>
+
+          <!-- Glucometer -->
+          <div class="col-md-4 d-flex justify-content-center">
+            <div
+              class="card text-center"
+              style="
+                max-width: 280px;
+                border-radius: 16px;
+                border-top: 5px solid #fd7e14;
+                padding: 20px;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+                transition:
+                  transform 0.3s,
+                  box-shadow 0.3s;
+              "
+            >
+              <img
+                src="pics/glucometer.jpg"
+                class="img-fluid mb-3"
+                style="max-height: 120px; object-fit: contain"
+                alt="Glucometer"
+              />
+              <h6 class="fw-semibold mb-2">Glucometer</h6>
+              <p class="small text-muted">Monitors blood sugar levels</p>
+            </div>
+          </div>
+
+          <!-- Smart Thermometer -->
+          <div class="col-md-4 d-flex justify-content-center">
+            <div
+              class="card text-center"
+              style="
+                max-width: 280px;
+                border-radius: 16px;
+                border-top: 5px solid #6f42c1;
+                padding: 20px;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+                transition:
+                  transform 0.3s,
+                  box-shadow 0.3s;
+              "
+            >
+              <img
+                src="pics/smart thermometer1.jpg"
+                class="img-fluid mb-3"
+                style="max-height: 120px; object-fit: contain"
+                alt="Smart Thermometer"
+              />
+              <h6 class="fw-semibold mb-2">Smart Thermometer</h6>
+              <p class="small text-muted">Tracks body temperature</p>
+            </div>
+          </div>
+
+          <!-- Smart Scale -->
+          <div class="col-md-4 d-flex justify-content-center">
+            <div
+              class="card text-center"
+              style="
+                max-width: 280px;
+                border-radius: 16px;
+                border-top: 5px solid #20c997;
+                padding: 20px;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+                transition:
+                  transform 0.3s,
+                  box-shadow 0.3s;
+              "
+            >
+              <img
+                src="pics/smart scale.jpg"
+                class="img-fluid mb-3"
+                style="max-height: 120px; object-fit: contain"
+                alt="Smart Scale"
+              />
+              <h6 class="fw-semibold mb-2">Smart Scale</h6>
+              <p class="small text-muted">Tracks weight and body composition</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- NUTRITION TIPS -->
+    <section class="bg-light" id="nutrition">
+      <div class="container text-center" data-aos="fade-up">
+        <h2 class="fw-bold mb-4">Healthy Eating & Nutrition</h2>
+        <div class="row g-4 justify-content-center">
+          <div class="col-md-4">
+            <div class="p-4 shadow-sm rounded text-center h-100">
+              <i class="fas fa-carrot text-success fs-2 mb-2"></i>
+              <h6>Eat Fruits & Veggies</h6>
+              <p class="small text-muted">
+                Aim for 5 servings daily to improve nutrient intake and overall
+                health.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-4 shadow-sm rounded text-center h-100">
+              <i class="fas fa-water text-primary fs-2 mb-2"></i>
+              <h6>Stay Hydrated</h6>
+              <p class="small text-muted">
+                Drink at least 8 cups of water daily for optimal bodily
+                function.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-4 shadow-sm rounded text-center h-100">
+              <i class="fas fa-leaf text-success fs-2 mb-2"></i>
+              <h6>Mindful Eating</h6>
+              <p class="small text-muted">
+                Watch portion sizes and eat slowly to avoid overeating.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+            <div class="card card-hover text-center p-4 h-100">
+              <i class="fas fa-seedling text-success fs-2 mb-2"></i>
+              <h6>Limit Processed Foods</h6>
+              <p class="small text-muted">
+                Reduce sugar, salt, and processed snacks to prevent lifestyle
+                diseases.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4" data-aos="fade-up" data-aos-delay="400">
+            <div class="p-4 shadow-sm rounded text-center h-100">
+              <i class="fas fa-utensils text-danger fs-2 mb-2"></i>
+              <h6>Regular Meals</h6>
+              <p class="small text-muted">
+                Eat at consistent times to help regulate metabolism and improve
+                energy levels.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="p-4 shadow-sm rounded text-center h-100">
+              <i class="fas fa-egg text-warning fs-2 mb-2"></i>
+              <h6>Balanced Diet</h6>
+              <p class="small text-muted">
+                Include proteins, healthy fats, and complex carbs in your meals
+                for sustained energy.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT US -->
+    <section class="bg-white" id="contact">
+      <div class="container text-center" data-aos="fade-up">
+        <h2 class="fw-bold mb-4">Contact Us</h2>
+        <p class="text-muted mb-4">
+          Have questions or need assistance? Reach out and our health support
+          team will respond promptly.
+        </p>
+        <form class="card p-4 shadow-sm mx-auto" style="max-width: 600px">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <input class="form-control" placeholder="Full Name" />
+            </div>
+            <div class="col-md-6">
+              <input class="form-control" placeholder="Email Address" />
+            </div>
+            <div class="col-12">
+              <textarea
+                class="form-control"
+                rows="4"
+                placeholder="Your Message"
+              ></textarea>
+            </div>
+            <div class="col-12">
+              <button class="btn btn-primary w-100">Send Message</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="py-4 text-center">
+      <p class="mb-0">&copy; 2024 DocMkononi | Proactive Health Starts Here</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init();
+    </script>
+
+    <!-- Hero Typing Animation -->
+    <script>
+      const heroTexts = [
+        "Continuous Health Monitoring",
+        "Early Symptom Recognition",
+        "Chronic Disease Management",
+        "Proactive Health Management",
+        "Public Health Awareness",
+      ];
+
+      let textIndex = 0;
+      let charIndex = 0;
+      const typingSpeed = 100;
+      const eraseDelay = 2000;
+      const heroElement = document.getElementById("hero-text");
+
+      function type() {
+        if (charIndex < heroTexts[textIndex].length) {
+          heroElement.textContent += heroTexts[textIndex].charAt(charIndex);
+          charIndex++;
+          setTimeout(type, typingSpeed);
+        } else {
+          setTimeout(erase, eraseDelay);
+        }
+      }
+
+      function erase() {
+        if (charIndex > 0) {
+          heroElement.textContent = heroTexts[textIndex].substring(
+            0,
+            charIndex - 1,
+          );
+          charIndex--;
+          setTimeout(erase, typingSpeed / 2);
+        } else {
+          textIndex = (textIndex + 1) % heroTexts.length;
+          setTimeout(type, typingSpeed);
+        }
+      }
+
+      type();
+    </script>
+  </body>
+</html>
