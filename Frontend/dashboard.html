@@ -98,6 +98,9 @@
         color: red;
         font-weight: bold;
       }
+      .bg-orange {
+        background-color: orange !important;
+      }
 
       .doctor-box {
         padding: 20px;
@@ -240,6 +243,7 @@
             <div id="healthAdvice" class="mb-3 text-muted">
               Log your metrics to calculate your health score.
             </div>
+            <div id="healthBreakdown" class="small"></div>
             <button
               onclick="downloadPDF()"
               class="btn btn-outline-primary w-100 mb-3"
@@ -435,17 +439,119 @@
                 bpScore + heartScore + sleepScore + sugarScore + exerciseScore;
               if (score > 100) score = 100;
 
+              const categoryDetails = [
+                {
+                  name: "Blood Pressure",
+                  score: bpScore,
+                  isNormal: bpScore === 20,
+                  value: `${bp}/${diastolic} mmHg`,
+                  recommendation:
+                    bpScore === 15
+                      ? "Reduce sodium and monitor blood pressure daily."
+                      : bpScore === 10
+                        ? "Start a BP-lowering plan: exercise regularly, reduce salt, and follow up with a clinician."
+                        : bpScore === 5
+                          ? "Seek medical review soon and strictly control diet, stress, and activity."
+                          : "Maintain your current blood pressure habits.",
+                },
+                {
+                  name: "Heart Rate",
+                  score: heartScore,
+                  isNormal: heartScore === 20,
+                  value: `${heartRate} bpm`,
+                  recommendation:
+                    heartScore === 20
+                      ? "Maintain your current heart-rate habits."
+                      : "Check hydration, stress, and activity levels. If persistent, consult a clinician.",
+                },
+                {
+                  name: "Sleep",
+                  score: sleepScore,
+                  isNormal: sleepScore === 20,
+                  value: `${sleep} hours`,
+                  recommendation:
+                    sleepScore === 20
+                      ? "Maintain consistent sleep habits."
+                      : "Target 6-9 hours nightly with a fixed sleep schedule and reduced late-night screen time.",
+                },
+                {
+                  name: "Blood Sugar",
+                  score: sugarScore,
+                  isNormal: sugarScore === 20,
+                  value: `${bs} mg/dL`,
+                  recommendation:
+                    sugarScore === 20
+                      ? "Maintain healthy meal timing and balanced nutrition."
+                      : sugarScore === 10
+                        ? "Cut refined carbs/sugars, increase fiber, and monitor fasting sugar regularly."
+                        : "Consult a clinician for diabetes-focused guidance and management.",
+                },
+                {
+                  name: "Exercise",
+                  score: exerciseScore,
+                  isNormal: exerciseScore === 20,
+                  value: `${exercise} mins`,
+                  recommendation:
+                    exerciseScore === 20
+                      ? "Keep doing at least 30 minutes of activity daily."
+                      : "Increase activity to at least 30 minutes daily (brisk walking is a good start).",
+                },
+              ];
+
+              const allLow = categoryDetails.every((item) => !item.isNormal);
+
               // AI HEALTH PREDICTION LOGIC
               let prediction = "";
+              let riskClass = "";
+              let scoreColorClass = "";
+              let barColorClass = "";
               if (score >= 80) {
                 prediction = "Low risk profile. Maintain healthy habits.";
+                riskClass = "risk-low";
+                scoreColorClass = "text-success";
+                barColorClass = "bg-success";
               } else if (score >= 60) {
                 prediction =
                   "Moderate risk. Lifestyle adjustments recommended.";
+                riskClass = "risk-medium";
+                scoreColorClass = "risk-medium";
+                barColorClass = "bg-orange";
               } else {
                 prediction =
                   "High risk detected. Immediate medical consultation advised.";
+                riskClass = "risk-high";
+                scoreColorClass = "text-danger";
+                barColorClass = "bg-danger";
               }
+
+              const recommendationItems = categoryDetails
+                .filter((item) => !item.isNormal)
+                .map((item) => `- ${item.name}: ${item.recommendation}`);
+              const recommendationSummary =
+                recommendationItems.length > 0
+                  ? recommendationItems.join("\n")
+                  : "- All values are normal. Continue current healthy habits.";
+
+              const breakdownHtml = `
+                <h6 class="mb-2">Category Breakdown</h6>
+                ${allLow ? '<div class="alert alert-warning py-2 px-3 mb-2">All categories need attention. Follow each recommendation below.</div>' : ""}
+                <ul class="list-group mb-2">
+                  ${categoryDetails
+                    .map(
+                      (item) => `
+                    <li class="list-group-item">
+                      <div><strong>${item.name}:</strong> ${item.score}% (value: ${item.value})</div>
+                      ${
+                        item.isNormal
+                          ? '<div class="text-success">Status: Normal</div>'
+                          : `<div class="text-danger">Recommendation: ${item.recommendation}</div>`
+                      }
+                    </li>
+                  `,
+                    )
+                    .join("")}
+                </ul>
+              `;
 
               let summary = `
   HEALTH SUMMARY
@@ -460,11 +566,15 @@
   AI Prediction:
   ${prediction}
 
-  Suggested Lifestyle Changes:
-  - Balanced nutrition
-  - 30 mins daily exercise
-  - 7-8 hrs sleep
-  - Stress management
+  Category Scores:
+  - Blood Pressure: ${bpScore}% (value: ${bp}/${diastolic})
+  - Heart Rate: ${heartScore}% (value: ${heartRate})
+  - Sleep: ${sleepScore}% (value: ${sleep} hrs)
+  - Blood Sugar: ${sugarScore}% (value: ${bs})
+  - Exercise: ${exerciseScore}% (value: ${exercise} mins)
+
+  Recommendations:
+  ${recommendationSummary}
 
   Action Plan:
   ✔ Follow NEWSTART principles
@@ -474,11 +584,26 @@
 
               lastReport = summary;
 
-              document.getElementById("healthScore").innerText = score + "%";
-              document.getElementById("healthAdvice").innerText = prediction;
+              const scoreEl = document.getElementById("healthScore");
+              const adviceEl = document.getElementById("healthAdvice");
+              const barEl = document.getElementById("healthProgressBar");
+              const breakdownEl = document.getElementById("healthBreakdown");
 
-              document.getElementById("healthProgressBar").style.width =
-                score + "%";
+              scoreEl.innerText = score + "%";
+              scoreEl.classList.remove(
+                "text-primary",
+                "text-success",
+                "text-danger",
+                "risk-medium",
+              );
+              scoreEl.classList.add(scoreColorClass);
+
+              adviceEl.innerHTML = `<span class="${riskClass}">${prediction}</span>`;
+              breakdownEl.innerHTML = breakdownHtml;
+
+              barEl.style.width = score + "%";
+              barEl.classList.remove("bg-success", "bg-danger", "bg-orange");
+              barEl.classList.add(barColorClass);
 
               // SAVE TO MYSQL
               await fetch("http://localhost:3000/save-metrics", {
