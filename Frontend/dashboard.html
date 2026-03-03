@@ -184,6 +184,13 @@
               <input
                 type="number"
                 class="form-control mb-3"
+                id="diastolic"
+                placeholder="Blood Pressure (Diastolic)"
+                required
+              />
+              <input
+                type="number"
+                class="form-control mb-3"
                 id="heartRate"
                 placeholder="Heart Rate (bpm)"
                 required
@@ -233,9 +240,12 @@
             <div id="healthAdvice" class="mb-3 text-muted">
               Log your metrics to calculate your health score.
             </div>
-            <button onclick="downloadPDF()" class="btn btn-outline-primary w-100 mb-3">
-                 Download Health Report (PDF)
-              </button>
+            <button
+              onclick="downloadPDF()"
+              class="btn btn-outline-primary w-100 mb-3"
+            >
+              Download Health Report (PDF)
+            </button>
 
             <button id="consultBtn" class="btn btn-outline-danger w-100 mb-3">
               <i class="bi bi-person-plus-fill me-2"></i>
@@ -354,40 +364,94 @@
           let historyData = [];
           let lastReport = "";
 
-document.getElementById("healthForm").addEventListener("submit", async function(e){
-  e.preventDefault();
+          document
+            .getElementById("healthForm")
+            .addEventListener("submit", async function (e) {
+              e.preventDefault();
 
-  let email = "user@example.com"; // replace with logged in user email
-  let bp = +document.getElementById("bp").value;
-  let heartRate = +document.getElementById("heartRate").value;
-  let sleep = +document.getElementById("sleep").value;
-  let bs = +document.getElementById("bs").value;
-  let exercise = +document.getElementById("exercise").value;
+              let email = "user@example.com"; // replace with logged in user email
+              let bp = +document.getElementById("bp").value;
+              let diastolic = +document.getElementById("diastolic").value;
+              let heartRate = +document.getElementById("heartRate").value;
+              let sleep = +document.getElementById("sleep").value;
+              let bs = +document.getElementById("bs").value;
+              let exercise = +document.getElementById("exercise").value;
 
-  let score = 100;
+              // strict validation ranges
+              if (bp < 70 || bp > 180 || diastolic < 40 || diastolic > 120) {
+                alert(
+                  "Out of Range/Crisis: Blood pressure must be Systolic 70-180 and Diastolic 40-120.",
+                );
+                return null;
+              }
+              if (heartRate < 30 || heartRate > 300) {
+                alert("Out of Range: Heart rate must be 30-300 bpm.");
+                return null;
+              }
+              if (sleep < 0 || sleep > 24) {
+                alert("Out of Range: Sleep must be 0-24 hours.");
+                return null;
+              }
+              if (bs < 20 || bs > 600) {
+                alert("Out of Range: Blood sugar must be 20-600 mg/dL.");
+                return null;
+              }
 
-  if(bp > 140) score -= 20;
-  if(heartRate > 100) score -= 15;
-  if(sleep < 7) score -= 15;
-  if(bs > 120) score -= 15;
-  if(exercise < 30) score -= 15;
-  if(score < 0) score = 0;
+              // category scores: 20 points each
+              let bpScore = 0;
+              if (bp < 120 && diastolic < 80) {
+                bpScore = 20;
+              } else if (bp >= 120 && bp <= 129 && diastolic < 80) {
+                bpScore = 15;
+              } else if (
+                (bp >= 130 && bp <= 139) ||
+                (diastolic >= 80 && diastolic <= 89)
+              ) {
+                bpScore = 10;
+              } else if (bp >= 140 || diastolic >= 90) {
+                bpScore = 5;
+              }
 
-  // AI HEALTH PREDICTION LOGIC
-  let prediction = "";
-  if(score >= 80){
-    prediction = "Low risk profile. Maintain healthy habits.";
-  } else if(score >= 60){
-    prediction = "Moderate risk. Lifestyle adjustments recommended.";
-  } else {
-    prediction = "High risk detected. Immediate medical consultation advised.";
-  }
+              let heartScore =
+                (heartRate >= 60 && heartRate <= 100) ||
+                (heartRate >= 40 && heartRate <= 59)
+                  ? 20
+                  : 5;
 
-  let summary = `
+              let sleepScore = sleep >= 6 && sleep <= 9 ? 20 : 10;
+
+              let sugarScore = 0;
+              if (bs >= 70 && bs <= 99) {
+                sugarScore = 20;
+              } else if ((bs >= 100 && bs <= 125) || bs < 70) {
+                sugarScore = 10;
+              } else if (bs >= 126) {
+                sugarScore = 5;
+              }
+
+              let exerciseScore = exercise >= 30 ? 20 : 10;
+
+              let score =
+                bpScore + heartScore + sleepScore + sugarScore + exerciseScore;
+              if (score > 100) score = 100;
+
+              // AI HEALTH PREDICTION LOGIC
+              let prediction = "";
+              if (score >= 80) {
+                prediction = "Low risk profile. Maintain healthy habits.";
+              } else if (score >= 60) {
+                prediction =
+                  "Moderate risk. Lifestyle adjustments recommended.";
+              } else {
+                prediction =
+                  "High risk detected. Immediate medical consultation advised.";
+              }
+
+              let summary = `
   HEALTH SUMMARY
   -------------------------
   Score: ${score}%
-  Blood Pressure: ${bp}
+  Blood Pressure: ${bp}/${diastolic}
   Heart Rate: ${heartRate}
   Sleep: ${sleep} hrs
   Blood Sugar: ${bs}
@@ -408,78 +472,88 @@ document.getElementById("healthForm").addEventListener("submit", async function(
   ✔ Consult advisor if symptoms persist
   `;
 
-  lastReport = summary;
+              lastReport = summary;
 
-  document.getElementById("healthScore").innerText = score + "%";
-  document.getElementById("healthAdvice").innerText = prediction;
+              document.getElementById("healthScore").innerText = score + "%";
+              document.getElementById("healthAdvice").innerText = prediction;
 
-  document.getElementById("healthProgressBar").style.width = score + "%";
+              document.getElementById("healthProgressBar").style.width =
+                score + "%";
 
-  // SAVE TO MYSQL
-  await fetch("http://localhost:3000/save-metrics", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      email, bp, heartRate, sleep, bs, exercise, score
-    })
-  });
+              // SAVE TO MYSQL
+              await fetch("http://localhost:3000/save-metrics", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  email,
+                  bp,
+                  heartRate,
+                  sleep,
+                  bs,
+                  exercise,
+                  score,
+                }),
+              });
 
-  historyData.push({bp, heartRate, sleep, exercise});
-  updateCharts();
-});
+              historyData.push({ bp, heartRate, sleep, exercise });
+              updateCharts();
+            });
 
+          // PDF DOWNLOAD
+          function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text(lastReport, 10, 10);
+            doc.save("Doc_Mkononi_Health_Report.pdf");
+          }
 
-// PDF DOWNLOAD
-function downloadPDF(){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.text(lastReport, 10, 10);
-  doc.save("Doc_Mkononi_Health_Report.pdf");
-}
+          // CONSULT MEDICAL ADVISOR
+          document
+            .getElementById("consultBtn")
+            .addEventListener("click", function () {
+              window.location.href = "tel:+254712345678";
+            });
 
+          // CHARTS
+          let bpChart, sleepChart;
 
-// CONSULT MEDICAL ADVISOR
-document.getElementById("consultBtn").addEventListener("click", function(){
-  window.location.href = "tel:+254712345678";
-});
+          function updateCharts() {
+            let labels = historyData.map((_, i) => "Entry " + (i + 1));
+            let bpValues = historyData.map((d) => d.bp);
+            let sleepValues = historyData.map((d) => d.sleep);
 
+            if (bpChart) bpChart.destroy();
 
-// CHARTS
-let bpChart, sleepChart;
+            bpChart = new Chart(document.getElementById("bpChart"), {
+              type: "line",
+              data: {
+                labels: labels,
+                datasets: [
+                  {
+                    label: "Blood Pressure",
+                    data: bpValues,
+                    borderColor: "red",
+                  },
+                ],
+              },
+            });
 
-function updateCharts(){
-  let labels = historyData.map((_, i) => "Entry " + (i+1));
-  let bpValues = historyData.map(d => d.bp);
-  let sleepValues = historyData.map(d => d.sleep);
+            if (sleepChart) sleepChart.destroy();
 
-  if(bpChart) bpChart.destroy();
-
-  bpChart = new Chart(document.getElementById("bpChart"), {
-    type: "line",
-    data: {
-      labels: labels,
-      datasets: [{
-        label: "Blood Pressure",
-        data: bpValues,
-        borderColor: "red"
-      }]
-    }
-  });
-
-  if(sleepChart) sleepChart.destroy();
-
-  sleepChart = new Chart(document.getElementById("sleepChart"), {
-    type: "bar",
-    data: {
-      labels: labels,
-      datasets: [{
-        label: "Sleep Hours",
-        data: sleepValues,
-        backgroundColor: "blue"
-      }]
-    }
-  });
-}
+            sleepChart = new Chart(document.getElementById("sleepChart"), {
+              type: "bar",
+              data: {
+                labels: labels,
+                datasets: [
+                  {
+                    label: "Sleep Hours",
+                    data: sleepValues,
+                    backgroundColor: "blue",
+                  },
+                ],
+              },
+            });
+          }
         </script>
       </div>
     </div>
