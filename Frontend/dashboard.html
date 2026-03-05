@@ -153,19 +153,30 @@
         ><i class="bi bi-speedometer2"></i> Dashboard</a
       >
       <a href="#"><i class="bi bi-heart-pulse"></i> Health Metrics</a>
-      <a href="#"><i class="bi bi-bar-chart"></i> Wellness Trends</a>
+      <a href="#" id="wellnessTrendsLink"
+        ><i class="bi bi-bar-chart"></i> Wellness Trends</a
+      >
+      <a href="#" id="remindersLink"
+        ><i class="bi bi-bell"></i> Reminders
+        <span id="sidebarNotificationCount" class="badge bg-warning text-dark"
+          >0</span
+        ></a
+      >
       <a href="#"><i class="bi bi-people"></i> Consultations</a>
       <a href="#"><i class="bi bi-gear"></i> The 8 Doctors </a>
-      <a href="#"><i class="bi bi-box-arrow-right"></i> Logout</a>
+      <a href="#" id="logoutLink"
+        ><i class="bi bi-box-arrow-right"></i> Logout</a
+      >
     </div>
 
     <!-- MAIN CONTENT -->
     <div class="main-content">
       <!-- TOP BAR -->
       <div class="topbar d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Welcome Back 👋</h5>
+        <h5 class="mb-0" id="welcomeMessage">Welcome Back 👋</h5>
         <div>
-          <i class="bi bi-bell fs-5 me-3"></i>
+          <i class="bi bi-bell fs-5 me-1"></i>
+          <span id="topNotificationCount" class="badge bg-danger me-3">0</span>
           <i class="bi bi-person-circle fs-4"></i>
         </div>
       </div>
@@ -251,10 +262,30 @@
               Download Health Report (PDF)
             </button>
 
-            <button id="consultBtn" class="btn btn-outline-danger w-100 mb-3">
-              <i class="bi bi-person-plus-fill me-2"></i>
-              Connect with Medical Advisor
-            </button>
+            <div class="mb-3">
+              <p class="fw-semibold mb-2">
+                <i class="bi bi-person-plus-fill me-2"></i>
+                Consult Medical Advisor
+              </p>
+              <a
+                href="https://wa.me/254798495671?text=Hello%20DocMkononi%2C%20I%20need%20medical%20advice."
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-outline-success w-100 mb-2"
+              >
+                <i class="bi bi-whatsapp me-2"></i>
+                Chat on WhatsApp (+254798495671)
+              </a>
+              <a
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=docmkononi@gmail.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-outline-primary w-100"
+              >
+                <i class="bi bi-envelope-fill me-2"></i>
+                Email via Gmail (docmkononi@gmail.com)
+              </a>
+            </div>
           </div>
         </div>
         <!-- NEWSTART GRID SECTION -->
@@ -364,16 +395,204 @@
             </div>
           </div>
         </div>
+
+        <div class="mt-5 d-none" id="wellnessTrendsSection">
+          <div class="card p-4">
+            <h5 class="mb-3">Wellness Trends Over Time</h5>
+            <canvas id="wellnessTrendChart" height="120"></canvas>
+            <p class="small text-muted mt-2 mb-0">
+              Showing up to 4 most recent wellness percentages.
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-5 d-none" id="remindersSection">
+          <div class="card p-4">
+            <h5 class="mb-3">Reminders & Notifications</h5>
+            <div class="mb-3">
+              <label for="reminderFrequency" class="form-label"
+                >Reminder Frequency</label
+              >
+              <div class="d-flex gap-2">
+                <select id="reminderFrequency" class="form-select">
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+                <button id="saveReminderBtn" class="btn btn-primary">
+                  Save
+                </button>
+              </div>
+              <small class="text-muted"
+                >You will be reminded to log health details using this
+                interval.</small
+              >
+            </div>
+            <h6 class="mb-2">Recent Notifications</h6>
+            <div id="notificationList" class="list-group small">
+              <div class="list-group-item text-muted">
+                No notifications yet.
+              </div>
+            </div>
+          </div>
+        </div>
         <script>
           let historyData = [];
           let lastReport = "";
+          let loggedInUserEmail = "";
+          let sessionToken = "";
+
+          async function ensureAuthenticated() {
+            const token = localStorage.getItem("sessionToken");
+            if (!token) {
+              window.location.href = "login.html";
+              return false;
+            }
+            sessionToken = token;
+
+            try {
+              const response = await fetch(
+                `http://localhost:3000/session/${token}`,
+              );
+
+              if (!response.ok) {
+                localStorage.removeItem("sessionToken");
+                localStorage.removeItem("userName");
+                localStorage.removeItem("userEmail");
+                window.location.href = "login.html";
+                return false;
+              }
+
+              const data = await response.json();
+              const name =
+                data.user?.name || localStorage.getItem("userName") || "User";
+              const email =
+                data.user?.email || localStorage.getItem("userEmail") || "";
+
+              document.getElementById("welcomeMessage").innerText =
+                `Welcome Back, ${name} 👋`;
+              localStorage.setItem("userName", name);
+              localStorage.setItem("userEmail", email);
+              loggedInUserEmail = email;
+              const reminderSelect = document.getElementById("reminderFrequency");
+              if (reminderSelect) {
+                reminderSelect.value = data.user?.reminderFrequency || "daily";
+              }
+              await loadNotifications();
+              return true;
+            } catch (err) {
+              window.location.href = "login.html";
+              return false;
+            }
+          }
+
+          function updateNotificationBadges(notifications) {
+            const unreadCount = notifications.filter((n) => !n.is_read).length;
+            document.getElementById("topNotificationCount").innerText =
+              unreadCount;
+            document.getElementById("sidebarNotificationCount").innerText =
+              unreadCount;
+          }
+
+          function renderNotifications(notifications) {
+            const list = document.getElementById("notificationList");
+            if (!list) return;
+
+            if (!notifications || notifications.length === 0) {
+              list.innerHTML =
+                '<div class="list-group-item text-muted">No notifications yet.</div>';
+              return;
+            }
+
+            list.innerHTML = notifications
+              .map(
+                (item) => `
+              <div class="list-group-item">
+                <div class="d-flex justify-content-between">
+                  <strong>${item.title}</strong>
+                  <small>${new Date(item.created_at).toLocaleString()}</small>
+                </div>
+                <div>${item.message}</div>
+              </div>
+            `,
+              )
+              .join("");
+          }
+
+          async function loadNotifications() {
+            if (!sessionToken) return;
+            try {
+              const response = await fetch(
+                `http://localhost:3000/notifications/${sessionToken}`,
+              );
+              if (!response.ok) return;
+              const data = await response.json();
+              const notifications = data.notifications || [];
+              renderNotifications(notifications);
+              updateNotificationBadges(notifications);
+            } catch (err) {
+              console.error("Could not load notifications");
+            }
+          }
+
+          async function saveReminderFrequency() {
+            const frequency = document.getElementById("reminderFrequency").value;
+            if (!sessionToken) return;
+
+            try {
+              const response = await fetch(
+                "http://localhost:3000/reminder-frequency",
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ token: sessionToken, frequency }),
+                },
+              );
+
+              const data = await response.json();
+              if (!response.ok) {
+                alert(data.message || "Could not save reminder frequency");
+                return;
+              }
+              alert("Reminder frequency updated successfully.");
+            } catch (err) {
+              alert("Could not save reminder frequency.");
+            }
+          }
+
+          document
+            .getElementById("logoutLink")
+            .addEventListener("click", async function (e) {
+              e.preventDefault();
+              const token = localStorage.getItem("sessionToken");
+
+              if (token) {
+                try {
+                  await fetch("http://localhost:3000/logout", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token }),
+                  });
+                } catch (err) {
+                  // continue with local logout even if backend call fails
+                }
+              }
+
+              localStorage.removeItem("sessionToken");
+              localStorage.removeItem("userName");
+              localStorage.removeItem("userEmail");
+              window.location.href = "login.html";
+            });
 
           document
             .getElementById("healthForm")
             .addEventListener("submit", async function (e) {
               e.preventDefault();
 
-              let email = "user@example.com"; // replace with logged in user email
+              let email =
+                loggedInUserEmail ||
+                localStorage.getItem("userEmail") ||
+                "user@example.com";
               let bp = +document.getElementById("bp").value;
               let diastolic = +document.getElementById("diastolic").value;
               let heartRate = +document.getElementById("heartRate").value;
@@ -620,7 +839,16 @@
                 }),
               });
 
-              historyData.push({ bp, heartRate, sleep, exercise });
+              historyData.push({
+                bp,
+                diastolic,
+                heartRate,
+                sleep,
+                bs,
+                exercise,
+                score,
+                date: new Date().toISOString().slice(0, 10),
+              });
               updateCharts();
             });
 
@@ -632,53 +860,104 @@
             doc.save("Doc_Mkononi_Health_Report.pdf");
           }
 
-          // CONSULT MEDICAL ADVISOR
-          document
-            .getElementById("consultBtn")
-            .addEventListener("click", function () {
-              window.location.href = "tel:+254712345678";
-            });
-
           // CHARTS
-          let bpChart, sleepChart;
+          let wellnessTrendChart;
 
-          function updateCharts() {
-            let labels = historyData.map((_, i) => "Entry " + (i + 1));
-            let bpValues = historyData.map((d) => d.bp);
-            let sleepValues = historyData.map((d) => d.sleep);
+          function renderWellnessTrendChart() {
+            const trendSection = document.getElementById(
+              "wellnessTrendsSection",
+            );
+            const canvas = document.getElementById("wellnessTrendChart");
+            if (!trendSection || !canvas) return;
 
-            if (bpChart) bpChart.destroy();
+            if (wellnessTrendChart) {
+              wellnessTrendChart.destroy();
+            }
 
-            bpChart = new Chart(document.getElementById("bpChart"), {
-              type: "line",
-              data: {
-                labels: labels,
-                datasets: [
-                  {
-                    label: "Blood Pressure",
-                    data: bpValues,
-                    borderColor: "red",
-                  },
-                ],
-              },
-            });
+            const latestFour = historyData.slice(-4);
+            const labels = latestFour.map((d) => d.date);
+            const values = latestFour.map((d) => d.score);
 
-            if (sleepChart) sleepChart.destroy();
-
-            sleepChart = new Chart(document.getElementById("sleepChart"), {
+            wellnessTrendChart = new Chart(canvas, {
               type: "bar",
               data: {
                 labels: labels,
                 datasets: [
                   {
-                    label: "Sleep Hours",
-                    data: sleepValues,
-                    backgroundColor: "blue",
+                    label: "Wellness Percentage",
+                    data: values,
+                    backgroundColor: "#0d6efd",
                   },
                 ],
               },
+              options: {
+                responsive: true,
+                scales: {
+                  y: {
+                    min: 0,
+                    max: 100,
+                    title: {
+                      display: true,
+                      text: "Percentage Wellness",
+                    },
+                  },
+                  x: {
+                    title: {
+                      display: true,
+                      text: "Date",
+                    },
+                  },
+                },
+              },
             });
           }
+
+          function updateCharts() {
+            const trendSection = document.getElementById(
+              "wellnessTrendsSection",
+            );
+            if (trendSection && !trendSection.classList.contains("d-none")) {
+              renderWellnessTrendChart();
+            }
+          }
+
+          document
+            .getElementById("wellnessTrendsLink")
+            .addEventListener("click", function (e) {
+              e.preventDefault();
+              const trendSection = document.getElementById(
+                "wellnessTrendsSection",
+              );
+              trendSection.classList.remove("d-none");
+              trendSection.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+              renderWellnessTrendChart();
+            });
+
+          document
+            .getElementById("remindersLink")
+            .addEventListener("click", async function (e) {
+              e.preventDefault();
+              const remindersSection =
+                document.getElementById("remindersSection");
+              remindersSection.classList.remove("d-none");
+              remindersSection.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+              await loadNotifications();
+            });
+
+          document
+            .getElementById("saveReminderBtn")
+            .addEventListener("click", function () {
+              saveReminderFrequency();
+            });
+
+          ensureAuthenticated();
+          setInterval(loadNotifications, 60000);
         </script>
       </div>
     </div>

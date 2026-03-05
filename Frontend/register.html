@@ -59,6 +59,10 @@ body {
   cursor: pointer;
   color: #6c757d;
 }
+.password-rules {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
 </style>
 </head>
 
@@ -95,12 +99,31 @@ body {
 <input type="tel" class="form-control mb-3" id="phone" placeholder="+254" required>
 
   <div class="password-wrapper mb-3">
-  <input type="password" class="form-control" id="password" placeholder="Password" required>
+  <input
+    type="password"
+    class="form-control"
+    id="password"
+    placeholder="Password"
+    minlength="8"
+    pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}"
+    title="Password must be at least 8 characters with uppercase, lowercase, number, and special character."
+    required
+  >
   <i class="fas fa-eye" onclick="togglePassword('password', this)"></i>
 </div>
+<p class="password-rules mt-n2 mb-3">
+Password must be at least 8 characters and include: 1 uppercase, 1 lowercase, 1 number, and 1 special character.
+</p>
 
 <div class="password-wrapper mb-4">
-  <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" required>
+  <input
+    type="password"
+    class="form-control"
+    id="confirmPassword"
+    placeholder="Confirm Password"
+    minlength="8"
+    required
+  >
   <i class="fas fa-eye" onclick="togglePassword('confirmPassword', this)"></i>
 </div>
  <button type="submit" class="btn btn-primary w-100">
@@ -120,6 +143,19 @@ Already have an account? <a href="login.html">Login</a>
 </section>
 
 <script>
+function togglePassword(inputId, iconEl){
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  const showing = input.type === "text";
+  input.type = showing ? "password" : "text";
+
+  if (iconEl) {
+    iconEl.classList.toggle("fa-eye", showing);
+    iconEl.classList.toggle("fa-eye-slash", !showing);
+  }
+}
+
 document.getElementById("registerForm").addEventListener("submit", async function(e){
   e.preventDefault();
 
@@ -128,6 +164,16 @@ document.getElementById("registerForm").addEventListener("submit", async functio
   const phone = document.getElementById("phone").value;
   const password = document.getElementById("password").value;
   const confirmPassword = document.getElementById("confirmPassword").value;
+  const passwordRule = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+  if(!passwordRule.test(password)){
+    Swal.fire({
+      icon: "error",
+      title: "Weak password",
+      text: "Use at least 8 characters with uppercase, lowercase, number, and special character."
+    });
+    return;
+  }
 
   if(password !== confirmPassword){
     Swal.fire({

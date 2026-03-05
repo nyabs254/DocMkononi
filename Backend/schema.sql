@@ -1,17 +1,62 @@
--- schema.sql: create database and users table for the project
-
-CREATE DATABASE IF NOT EXISTS year4project;
-USE year4project;
+CREATE DATABASE IF NOT EXISTS doc_mkononi;
+USE doc_mkononi;
 
 CREATE TABLE IF NOT EXISTS users (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  full_name VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL UNIQUE,
+  phone VARCHAR(30) NULL,
   password VARCHAR(255) NOT NULL,
-  name VARCHAR(255) DEFAULT '',
-  age INT NULL,
-  weight FLOAT NULL,
-  `condition` VARCHAR(255) NULL,
-  goals JSON NULL,
+  reminder_frequency ENUM('daily', 'weekly', 'monthly') NOT NULL DEFAULT 'daily',
+  last_details_logged_at DATETIME NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   last_login TIMESTAMP NULL
+);
+
+CREATE TABLE IF NOT EXISTS user_sessions (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  session_token CHAR(64) NOT NULL UNIQUE,
+  login_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  logout_at DATETIME NULL,
+  expires_at DATETIME NOT NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_user_sessions_user
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  full_name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS health_logs (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  bp_systolic INT NULL,
+  heart_rate INT NULL,
+  sleep_hours DECIMAL(4,2) NULL,
+  blood_sugar DECIMAL(8,2) NULL,
+  exercise_minutes INT NULL,
+  score INT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_health_logs_user
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  type VARCHAR(50) NOT NULL DEFAULT 'health_reminder',
+  title VARCHAR(255) NOT NULL,
+  message TEXT NOT NULL,
+  is_read TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_notifications_user
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

@@ -120,39 +120,66 @@ function togglePassword(){
 }
 
 /* Login Logic */
-document.getElementById("loginForm").addEventListener("submit", function(e){
+document.getElementById("loginForm").addEventListener("submit", async function(e){
   e.preventDefault();
 
   const email = document.getElementById("loginEmail").value;
+  const password = document.getElementById("loginPassword").value;
 
-  // Simulated login success (Replace with Firebase later)
-  Swal.fire({
-    title: "Login Successful!",
-    html: `
-      <div style="display:flex;flex-direction:column;align-items:center;">
-        <div style="
-          width:80px;
-          height:80px;
-          border-radius:50%;
-          background:6367FF;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          animation: pop 0.5s ease;
-        ">
-          <i class="fas fa-check" style="color:white;font-size:40px;"></i>
+  try {
+    const response = await fetch("http://localhost:3000/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      Swal.fire({
+        icon: "error",
+        title: data.message || "Login failed"
+      });
+      return;
+    }
+
+    localStorage.setItem("sessionToken", data.token);
+    localStorage.setItem("userName", data.user.name || "");
+    localStorage.setItem("userEmail", data.user.email || "");
+
+    Swal.fire({
+      title: "Login Successful!",
+      html: `
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div style="
+            width:80px;
+            height:80px;
+            border-radius:50%;
+            background:6367FF;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            animation: pop 0.5s ease;
+          ">
+            <i class="fas fa-check" style="color:white;font-size:40px;"></i>
+          </div>
+          <h4 style="margin-top:15px;">Welcome Back!</h4>
+          <p style="color:gray;">Redirecting to your dashboard...</p>
         </div>
-        <h4 style="margin-top:15px;">Welcome Back!</h4>
-        <p style="color:gray;">Redirecting to your dashboard...</p>
-      </div>
-    `,
-    showConfirmButton: false,
-    timer: 2500
-  });
+      `,
+      showConfirmButton: false,
+      timer: 1500
+    });
 
-  setTimeout(function(){
-    window.location.href = "dashboard.html";
-  }, 2500);
+    setTimeout(function(){
+      window.location.href = "dashboard.html";
+    }, 1500);
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Server not running"
+    });
+  }
 });
 </script>
 
