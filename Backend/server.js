@@ -11,6 +11,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ADMIN AUTH (simple token-based, in-memory)
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@docmkononi.local";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Admin@12345";
+const ADMIN_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
+const adminSessions = new Map();
+
 // DATABASE CONNECTION
 const db = mysql.createConnection({
   host: "localhost",
@@ -115,6 +121,26 @@ function checkReminderAndNotifyUsers() {
   });
 }
 
+function getAdminToken(req) {
+  const auth = req.headers.authorization || "";
+  if (auth.startsWith("Bearer ")) {
+    return auth.slice(7);
+  }
+  return req.headers["x-admin-token"];
+}
+
+function requireAdmin(req, res, next) {
+  const token = getAdminToken(req);
+  if (!token) return res.status(401).json({ message: "Admin token required" });
+  const session = adminSessions.get(token);
+  if (!session) return res.status(401).json({ message: "Invalid admin token" });
+  if (session.expiresAt < Date.now()) {
+    adminSessions.delete(token);
+    return res.status(401).json({ message: "Admin session expired" });
+  }
+  return next();
+}
+
 // REGISTER ROUTE
 app.post("/register", async (req, res) => {
   const { fullName, email, phone, password } = req.body;
@@ -216,6 +242,32 @@ app.post("/login", (req, res) => {
   );
 });
 
+// ADMIN LOGIN
+app.post("/admin/login", (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
+  if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ message: "Invalid admin credentials" });
+  }
+  const token = generateSessionToken();
+  adminSessions.set(token, { expiresAt: Date.now() + ADMIN_TOKEN_TTL_MS });
+  return res.json({ message: "Admin login successful", token });
+});
+
+// ADMIN SESSION CHECK
+app.get("/admin/session", requireAdmin, (req, res) => {
+  return res.json({ ok: true });
+});
+
+// ADMIN LOGOUT
+app.post("/admin/logout", requireAdmin, (req, res) => {
+  const token = getAdminToken(req);
+  if (token) adminSessions.delete(token);
+  return res.json({ message: "Admin logout successful" });
+});
+
 // SESSION LOOKUP ROUTE
 app.get("/session/:token", (req, res) => {
   const { token } = req.params;
@@ -292,6 +344,94 @@ app.post("/contact-us", (req, res) => {
       return res.status(500).json({ message: "Failed to send message" });
     }
     return res.status(201).json({ message: "Message sent" });
+  });
+});
+
+// ADMIN: DASHBOARD STATS
+app.get("/admin/stats", requireAdmin, (req, res) => {
+  const stats = {};
+
+  db.query("SELECT COUNT(*) AS totalUsers FROM users", (err, rows) => {
+    if (err) return res.status(500).json({ message: "Database error" });
+    stats.totalUsers = rows[0].totalUsers;
+
+    db.query("SELECT COUNT(*) AS totalHealthLogs FROM health_logs", (logErr, logRows) => {
+      if (logErr) return res.status(500).json({ message: "Database error" });
+      stats.totalHealthLogs = logRows[0].totalHealthLogs;
+
+      db.query("SELECT COUNT(*) AS newMessages FROM contact_messages", (msgErr, msgRows) => {
+        if (msgErr) return res.status(500).json({ message: "Database error" });
+        stats.newMessages = msgRows[0].newMessages;
+
+        db.query(
+          "SELECT COUNT(*) AS pendingNotifications FROM notifications WHERE is_read = 0",
+          (notifErr, notifRows) => {
+            if (notifErr) return res.status(500).json({ message: "Database error" });
+            stats.pendingNotifications = notifRows[0].pendingNotifications;
+            return res.json(stats);
+          },
+        );
+      });
+    });
+  });
+});
+
+// ADMIN: REGISTERED USERS
+app.get("/admin/users", requireAdmin, (req, res) => {
+  const sql = `
+    SELECT id, full_name, email, phone, reminder_frequency, last_details_logged_at, created_at, last_login
+    FROM users
+    ORDER BY created_at DESC
+    LIMIT 200
+  `;
+  db.query(sql, (err, rows) => {
+    if (err) return res.status(500).json({ message: "Database error" });
+    return res.json({ users: rows });
+  });
+});
+
+// ADMIN: HEALTH LOGS
+app.get("/admin/health-logs", requireAdmin, (req, res) => {
+  const sql = `
+    SELECT hl.id, u.full_name, u.email, hl.bp_systolic, hl.heart_rate, hl.sleep_hours,
+           hl.blood_sugar, hl.exercise_minutes, hl.score, hl.created_at
+    FROM health_logs hl
+    INNER JOIN users u ON u.id = hl.user_id
+    ORDER BY hl.created_at DESC
+    LIMIT 200
+  `;
+  db.query(sql, (err, rows) => {
+    if (err) return res.status(500).json({ message: "Database error" });
+    return res.json({ healthLogs: rows });
+  });
+});
+
+// ADMIN: CONTACT MESSAGES
+app.get("/admin/contact-messages", requireAdmin, (req, res) => {
+  const sql = `
+    SELECT id, full_name, email, message, created_at
+    FROM contact_messages
+    ORDER BY created_at DESC
+    LIMIT 200
+  `;
+  db.query(sql, (err, rows) => {
+    if (err) return res.status(500).json({ message: "Database error" });
+    return res.json({ contactMessages: rows });
+  });
+});
+
+// ADMIN: NOTIFICATIONS SENT
+app.get("/admin/notifications", requireAdmin, (req, res) => {
+  const sql = `
+    SELECT n.id, u.full_name, u.email, n.type, n.title, n.message, n.is_read, n.created_at
+    FROM notifications n
+    INNER JOIN users u ON u.id = n.user_id
+    ORDER BY n.created_at DESC
+    LIMIT 200
+  `;
+  db.query(sql, (err, rows) => {
+    if (err) return res.status(500).json({ message: "Database error" });
+    return res.json({ notifications: rows });
   });
 });
 

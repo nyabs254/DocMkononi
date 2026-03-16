@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Login - DocMkononi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body{
+  background-color:#1e88e5;
+  background-image:
+    linear-gradient(rgba(30,136,229,0.92), rgba(30,136,229,0.92)),
+    url("https://cdn-icons-png.flaticon.com/512/2966/2966327.png");
+  background-size:cover, 320px;
+  background-attachment:fixed, fixed;
+  background-repeat:no-repeat, no-repeat;
+  background-position:center, center;
+  font-family:Segoe UI;
+}
+.login-card{
+  max-width:420px;
+  margin:80px auto;
+  padding:30px;
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 10px 20px rgba(0,0,0,0.08);
+}
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <h4 class="mb-3">Admin Login</h4>
+  <div class="mb-3">
+    <label class="form-label">Email</label>
+    <input id="email" type="email" class="form-control" placeholder="admin email">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Password</label>
+    <input id="password" type="password" class="form-control" placeholder="password">
+  </div>
+  <button id="login-btn" class="btn btn-primary w-100">Login</button>
+  <div id="error" class="text-danger mt-3" style="display:none;"></div>
+</div>
+
+<script>
+const API_BASE = "http://localhost:3000";
+
+document.getElementById("login-btn").addEventListener("click", async () => {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const error = document.getElementById("error");
+  error.style.display = "none";
+
+  if (!email || !password){
+    error.textContent = "Email and password are required.";
+    error.style.display = "block";
+    return;
+  }
+
+  try{
+    const res = await fetch(`${API_BASE}/admin/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok){
+      error.textContent = data.message || "Login failed.";
+      error.style.display = "block";
+      return;
+    }
+    localStorage.setItem("adminToken", data.token);
+    window.location.href = "admin.html";
+  }catch(e){
+    error.textContent = "Login failed. Check server connection.";
+    error.style.display = "block";
+  }
+});
+</script>
+
+</body>
+</html>
